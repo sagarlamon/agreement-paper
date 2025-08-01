@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agreement Letter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom modal styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 90%;
+            width: 400px;
+        }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e5e7eb;
+            border-radius: 0.25rem;
+            height: 0.75rem;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4f46e5;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 min-h-screen flex items-center justify-center">
+    <div id="content-to-capture" class="max-w-2xl w-full mx-auto bg-white p-8 rounded-lg shadow-xl border border-gray-200">
+        <h1 class="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-6">Agreement Letter</h1>
+
+        <div id="agreement-content" class="text-base md:text-lg text-gray-700 leading-relaxed space-y-4 p-4 rounded-md bg-gray-50 border border-gray-200">
+            </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Terms and Conditions</h2>
+            <div class="text-gray-600 text-sm md:text-base space-y-2 p-4 bg-gray-50 rounded-md border border-gray-200">
+                <ul class="list-disc list-inside">
+                    <li>This loan is a legally binding agreement between 'SAGAR Financial Private Limited' and Mr. Priyanshu Yadav.</li>
+                    <li>This fund will only be used for the purpose for which it has been provided.</li>
+                    <li>If the payment is not made by the specified date (August 03, 2025), a statutory interest will be charged on this amount.</li>
+                    <li>In case of any dispute, the resolution will be made in accordance with Indian laws.</li>
+                </ul>
+            </div>
+            <div class="flex items-center mt-4">
+                <input type="checkbox" id="terms-checkbox" class="h-4 w-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer">
+                <label for="terms-checkbox" class="ml-2 text-sm md:text-base text-gray-900 cursor-pointer">I agree to all the terms and conditions given above.</label>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Sign Here</h2>
+            <div class="border border-gray-300 rounded-lg p-2 bg-gray-50 shadow-inner">
+                <canvas id="signatureCanvas" class="w-full h-48 md:h-64 bg-white rounded-md cursor-crosshair"></canvas>
+            </div>
+            <button id="clear-signature-btn" class="mt-2 text-sm text-red-500 hover:text-red-700 transition-colors">Clear Signature</button>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Attach Your Photo</h2>
+            <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4">
+                <div class="w-full md:w-1/2 rounded-lg overflow-hidden shadow-md">
+                    <video id="videoElement" class="w-full bg-gray-800" autoplay playsinline></video>
+                </div>
+                <div class="w-full md:w-1/2 flex justify-center items-center">
+                    <canvas id="photoCanvas" class="hidden w-48 h-auto rounded-lg shadow-md"></canvas>
+                    <img id="photo-preview" class="hidden w-48 h-auto rounded-lg shadow-md border border-gray-300" alt="Captured Photo">
+                </div>
+            </div>
+            <div class="mt-4 flex flex-wrap justify-center gap-4">
+                <button id="open-camera-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-600 transition-colors flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    Open Camera
+                </button>
+                <button id="capture-photo-btn" class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition-colors hidden flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19.127 1.873a1 1 0 0 0-1.414 0L10.5 9.086 4.286 2.873a1 1 0 0 0-1.414 1.414l6.213 6.213-6.213 6.213a1 1 0 0 0 1.414 1.414l6.213-6.213 6.213 6.213a1 1 0 0 0 1.414-1.414L11.914 10.5l6.213-6.213a1 1 0 0 0 0-1.414z"></path>
+                        <path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"></path>
+                    </svg>
+                    Capture Photo
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col items-center">
+            <button id="generate-pdf-btn" class="bg-purple-600 text-white font-bold px-6 py-3 rounded-lg shadow-lg hover:bg-purple-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto" disabled>
+                Download Agreement
+            </button>
+        </div>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay">
+        <div id="modal-content" class="modal-content text-center">
+            <h3 id="modal-title" class="text-xl font-bold mb-4 text-gray-800"></h3>
+            <p id="modal-message" class="text-gray-700"></p>
+            <div id="progress-bar-container" class="progress-bar-container mt-4 hidden">
+                <div id="progress-bar" class="progress-bar" style="width: 0%;"></div>
+            </div>
+            <button id="modal-close-btn" class="mt-6 bg-blue-500 text-white px-6 py-2 rounded-lg shadow-md hover:bg-blue-600 transition-colors">Close</button>
+        </div>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+
+        // --- Helper function for showing a custom modal instead of alert() ---
+        function showCustomModal(title, message, showProgressBar = false) {
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalCloseBtn = document.getElementById('modal-close-btn');
+            const progressBarContainer = document.getElementById('progress-bar-container');
+
+            modalTitle.textContent = title;
+            modalMessage.textContent = message;
+            modalOverlay.style.display = 'flex';
+
+            if (showProgressBar) {
+                progressBarContainer.classList.remove('hidden');
+                modalCloseBtn.classList.add('hidden');
+            } else {
+                progressBarContainer.classList.add('hidden');
+                modalCloseBtn.classList.remove('hidden');
+            }
+
+            modalCloseBtn.onclick = () => {
+                modalOverlay.style.display = 'none';
+            };
+        }
+
+        // --- DOM Elements ---
+        const agreementContent = document.getElementById('agreement-content');
+        const termsCheckbox = document.getElementById('terms-checkbox');
+        const signatureCanvas = document.getElementById('signatureCanvas');
+        const clearSignatureBtn = document.getElementById('clear-signature-btn');
+        const videoElement = document.getElementById('videoElement');
+        const openCameraBtn = document.getElementById('open-camera-btn');
+        const capturePhotoBtn = document.getElementById('capture-photo-btn');
+        const photoCanvas = document.getElementById('photoCanvas');
+        const photoPreview = document.getElementById('photo-preview');
+        const generatePdfBtn = document.getElementById('generate-pdf-btn');
+        const contentToCapture = document.getElementById('content-to-capture');
+        const progressBar = document.getElementById('progress-bar');
+
+        const signatureCtx = signatureCanvas.getContext('2d');
+        const photoCtx = photoCanvas.getContext('2d');
+        let signatureData = null;
+        let photoData = null;
+        let isDrawing = false;
+        let videoStream = null;
+
+        // --- State variables to track user actions ---
+        let isSigned = false;
+        let isPhotoCaptured = false;
+        let isTermsAgreed = false;
+
+        // --- Helper function to update the button's disabled state ---
+        const updateButtonState = () => {
+            if (isSigned && isPhotoCaptured && isTermsAgreed) {
+                generatePdfBtn.disabled = false;
+            } else {
+                generatePdfBtn.disabled = true;
+            }
+        };
+
+        // --- Initial setup on window load ---
+        window.onload = () => {
+            const today = new Date();
+            const repaymentDate = new Date(today);
+            repaymentDate.setDate(today.getDate() + 2);
+
+            const todayFormatted = new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(today);
+            const repaymentDateFormatted = new Intl.DateTimeFormat('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }).format(repaymentDate);
+
+            agreementContent.innerHTML = `
+                <p>Date: <span class="font-semibold">${todayFormatted}</span></p>
+                <p>We, SAGAR Financial Private Limited, hereby certify that a loan of <span class="font-semibold">₹200/- (Rupees Two Hundred only)</span> has been provided to Mr. Priyanshu Yadav via UPI on this letter dated today.</p>
+                <p>Mr. Priyanshu Yadav promises to be bound to repay the said amount in full and will make this payment on time on <span class="font-semibold">${repaymentDateFormatted}</span>.</p>
+                <p>If the payment is not made on the specified date, this amount will be recovered with statutory interest.</p>
+            `;
+            updateButtonState();
+        };
+
+        // --- Signature Pad Logic ---
+        function setupSignaturePad() {
+            const scale = window.devicePixelRatio;
+            signatureCanvas.width = signatureCanvas.offsetWidth * scale;
+            signatureCanvas.height = signatureCanvas.offsetHeight * scale;
+            signatureCtx.scale(scale, scale);
+
+            signatureCtx.lineWidth = 3;
+            signatureCtx.lineCap = 'round';
+            signatureCtx.strokeStyle = 'black';
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+
+            const getMousePos = (canvas, evt) => {
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: (evt.clientX - rect.left) / scale,
+                    y: (evt.clientY - rect.top) / scale
+                };
+            };
+
+            const startDrawing = (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                isSigned = true;
+                const pos = getMousePos(signatureCanvas, e);
+                signatureCtx.beginPath();
+                signatureCtx.moveTo(pos.x, pos.y);
+                updateButtonState();
+            };
+
+            const draw = (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const pos = getMousePos(signatureCanvas, e);
+                signatureCtx.lineTo(pos.x, pos.y);
+                signatureCtx.stroke();
+            };
+
+            const stopDrawing = () => {
+                isDrawing = false;
+                signatureData = signatureCanvas.toDataURL();
+            };
+
+            signatureCanvas.addEventListener('mousedown', startDrawing);
+            signatureCanvas.addEventListener('mousemove', draw);
+            signatureCanvas.addEventListener('mouseup', stopDrawing);
+            signatureCanvas.addEventListener('mouseout', stopDrawing);
+
+            signatureCanvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                isDrawing = true;
+                isSigned = true;
+                const touch = e.touches[0];
+                const rect = signatureCanvas.getBoundingClientRect();
+                const x = (touch.clientX - rect.left) / scale;
+                const y = (touch.clientY - rect.top) / scale;
+                signatureCtx.beginPath();
+                signatureCtx.moveTo(x, y);
+                updateButtonState();
+            }, { passive: false });
+
+            signatureCanvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!isDrawing) return;
+                const touch = e.touches[0];
+                const rect = signatureCanvas.getBoundingClientRect();
+                const x = (touch.clientX - rect.left) / scale;
+                const y = (touch.clientY - rect.top) / scale;
+                signatureCtx.lineTo(x, y);
+                signatureCtx.stroke();
+            }, { passive: false });
+
+            signatureCanvas.addEventListener('touchend', stopDrawing, { passive: false });
+        }
+        setupSignaturePad();
+
+        // --- Clear signature button handler ---
+        clearSignatureBtn.addEventListener('click', () => {
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            isSigned = false;
+            signatureData = null;
+            updateButtonState();
+        });
+
+        // --- Camera and Photo Capture Logic ---
+        openCameraBtn.addEventListener('click', async () => {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                videoElement.srcObject = videoStream;
+                videoElement.style.display = 'block';
+                openCameraBtn.classList.add('hidden');
+                capturePhotoBtn.classList.remove('hidden');
+            } catch (err) {
+                console.error("Camera access denied or failed: ", err);
+                showCustomModal('Camera Error', 'There was a problem accessing the camera. Please ensure you have granted permission.');
+            }
+        });
+
+        capturePhotoBtn.addEventListener('click', () => {
+            if (videoElement.srcObject) {
+                photoCanvas.width = videoElement.videoWidth;
+                photoCanvas.height = videoElement.videoHeight;
+                photoCtx.drawImage(videoElement, 0, 0, photoCanvas.width, photoCanvas.height);
+
+                photoData = photoCanvas.toDataURL('image/png');
+                photoPreview.src = photoData;
+                photoPreview.classList.remove('hidden');
+                videoElement.style.display = 'none';
+
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                }
+
+                isPhotoCaptured = true;
+                updateButtonState();
+                capturePhotoBtn.classList.add('hidden');
+            }
+        });
+
+        // --- Terms and Conditions Checkbox ---
+        termsCheckbox.addEventListener('change', () => {
+            isTermsAgreed = termsCheckbox.checked;
+            updateButtonState();
+        });
+
+        // --- PDF Generation Logic ---
+        generatePdfBtn.addEventListener('click', () => {
+            if (!isSigned || !isPhotoCaptured || !isTermsAgreed) {
+                showCustomModal('Incomplete Form', 'Please agree to all terms, sign and capture a photo.');
+                return;
+            }
+
+            // Show a loading modal with a progress bar
+            showCustomModal('Generating PDF...', 'Please wait while your agreement is being created.', true);
+            progressBar.style.width = '10%';
+
+            // Temporarily hide elements that shouldn't be in the PDF
+            const buttonsToHide = document.querySelectorAll('#generate-pdf-btn, #open-camera-btn, #capture-photo-btn, #clear-signature-btn');
+            const checkboxDiv = document.querySelector('.flex.items-center.mt-4');
+            const videoElem = document.getElementById('videoElement');
+
+            buttonsToHide.forEach(btn => btn.style.display = 'none');
+            if (checkboxDiv) {
+                checkboxDiv.style.display = 'none';
+            }
+            if (videoElem) {
+                videoElem.style.display = 'none';
+            }
+
+            // Create a temporary, hidden div to hold the cloned content and attach to body
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.width = contentToCapture.offsetWidth + 'px';
+            tempDiv.style.backgroundColor = 'white';
+            document.body.appendChild(tempDiv);
+
+            // Clone the content
+            const finalContent = contentToCapture.cloneNode(true);
+
+            // Insert the captured signature and photo data directly into the cloned content
+            const signatureCanvasClone = finalContent.querySelector('#signatureCanvas');
+            const photoPreviewClone = finalContent.querySelector('#photo-preview');
+
+            if (signatureCanvasClone && signatureData) {
+                const img = document.createElement('img');
+                img.src = signatureData;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.border = '1px solid #ccc';
+                img.style.borderRadius = '0.375rem';
+                img.style.padding = '0.5rem';
+                img.style.backgroundColor = '#f9fafb';
+                signatureCanvasClone.replaceWith(img);
+            }
+            if (photoPreviewClone && photoData) {
+                photoPreviewClone.style.display = 'block';
+                photoPreviewClone.src = photoData;
+                photoPreviewClone.style.width = '100%';
+                photoPreviewClone.style.height = 'auto';
+            }
+            
+            // Append the final content to the temporary div
+            tempDiv.appendChild(finalContent);
+
+            // Animate progress to 50% during canvas rendering
+            setTimeout(() => {
+                progressBar.style.width = '50%';
+            }, 100);
+            
+            // Get the element you want to convert
+            html2canvas(tempDiv, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                progressBar.style.width = '80%';
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [canvas.width, canvas.height]
+                });
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save('agreement.pdf');
+
+                progressBar.style.width = '100%';
+                
+                // Animate to 100% and then show the final success message
+                setTimeout(() => {
+                    showCustomModal('Thank You!', 'Your agreement has been downloaded successfully. Stay connected with SAGAR Finance Pvt.');
+                }, 500);
+
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                showCustomModal('PDF Generation Error', 'There was a problem generating the PDF. Please try again.');
+            }).finally(() => {
+                // Restore hidden elements after PDF generation, regardless of success or failure
+                buttonsToHide.forEach(btn => btn.style.display = '');
+                if (checkboxDiv) {
+                    checkboxDiv.style.display = 'flex';
+                }
+                if (videoElem) {
+                    videoElem.style.display = 'block';
+                }
+                // Clean up the temporary div
+                document.body.removeChild(tempDiv);
+            });
+        });
+    </script>
+</body>
+</html>
